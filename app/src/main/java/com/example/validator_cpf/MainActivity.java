@@ -1,6 +1,7 @@
 package com.example.validator_cpf;
 
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,9 +26,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView textResult;
     private ProgressBar progressBar;
 
+    //18682|c9Wqs5UNaqae2rlezwC6EM0asMTxUHY2
     private static final String BASE_URL = "https://api.invertexto.com/v1/";
-    private static final String API_TOKEN = "SEU_TOKEN_AQUI"; // Substitua pelo seu token real
 
+    private static final String API_TOKEN = BuildConfig.API_TOKEN;
     private ApiService apiService;
 
     @Override
@@ -54,10 +56,12 @@ public class MainActivity extends AppCompatActivity {
         // Evento de clique no botão Validar
         btnValidar.setOnClickListener(v -> {
             String cpf = editTextCpf.getText().toString().trim();
+            System.err.println("Erro: ---------------------! " + cpf.length());
             if (cpf.length() == 11) {
                 validarCpf(cpf);
             } else {
-                Toast.makeText(MainActivity.this, "Digite um CPF válido (11 dígitos)", Toast.LENGTH_SHORT).show();
+                textResult.setText("Digite um CPF com 11 digitos!");
+
             }
         });
     }
@@ -70,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Função para chamar a API e validar o CPF
     private void validarCpf(String cpf) {
-        // Mostrar barra de progresso
+        // Mostrar barra de progresso e definir o texto inicial
         progressBar.setVisibility(View.VISIBLE);
         textResult.setText("Validando...");
 
@@ -78,26 +82,29 @@ public class MainActivity extends AppCompatActivity {
         call.enqueue(new Callback<ApiResponse>() {
             @Override
             public void onResponse(Call<ApiResponse> call, retrofit2.Response<ApiResponse> response) {
-                progressBar.setVisibility(View.GONE); // Esconder progresso
+                // Criar um handler para atrasar a exibição do resultado
+                new android.os.Handler().postDelayed(() -> {
+                    progressBar.setVisibility(View.GONE); // Esconder barra de progresso
 
-                if (response.isSuccessful() && response.body() != null) {
-                    String resultado = response.body().getResult();
-                    if ("valid".equalsIgnoreCase(resultado)) {
-                        textResult.setText("✅ CPF Válido");
+                    if (response.isSuccessful() && response.body() != null) {
+                        boolean isValid = response.body().isValid(); // Atualize com o nome correto do campo JSON
+                        textResult.setText(isValid ? "✅ CPF Válido" : "❌ CPF Inválido");
                     } else {
-                        textResult.setText("❌ CPF Inválido");
+                        textResult.setText("Erro ao validar CPF");
                     }
-                } else {
-                    textResult.setText("Erro ao validar CPF");
-                }
+                }, 3000); // Atraso de 3 segundos (3000ms)
             }
 
             @Override
             public void onFailure(Call<ApiResponse> call, Throwable t) {
-                progressBar.setVisibility(View.GONE);
-                textResult.setText("Erro na conexão");
-                Toast.makeText(MainActivity.this, "Falha: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                // Criar um handler para garantir que a animação aconteça mesmo com erro
+                new android.os.Handler().postDelayed(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    textResult.setText("Erro na conexão");
+                    Toast.makeText(MainActivity.this, "Falha: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }, 3000); // Atraso de 3 segundos (3000ms)
             }
         });
     }
+
 }

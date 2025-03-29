@@ -1,27 +1,19 @@
 package com.example.validator_cpf;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ApiResponse {
-    private String result;
-    private String message;
-    // Getters and setters
+    @SerializedName("valid")
+    private boolean valid;
 
-    public String getResult() {
-        return result;
+    @SerializedName("formatted")
+    private String formatted;
+
+    public boolean isValid() {
+        return valid;
     }
 
-    // Setter para 'result'
-    public void setResult(String result) {
-        this.result = result;
+    public String getFormatted() {
+        return formatted;
     }
-
-    // Getter para 'message'
-    public String getMessage() {
-        return message;
-    }
-
-    // Setter para 'message'
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
 }
